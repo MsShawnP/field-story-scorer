@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Binary file types — never apply line-ending conversion
+*.pdf  binary
+*.xlsx binary
+*.xls  binary

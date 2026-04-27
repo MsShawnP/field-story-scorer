@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Tool output
+reports/
+*.pdf
+*.xlsx
+*.xls
+
+# Allow committed sample inputs/outputs
+!samples/**/*.xlsx
+!samples/**/*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+
+# Test artifacts
+mixed_type_test.xlsx
+sample_data.xlsx
