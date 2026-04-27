@@ -123,6 +123,18 @@ Real reports produced by running the scorer on the bundled sample inputs — com
   [xlsx](samples/output/sample_mixed_types_field_report_strict.xlsx) ·
   [pdf](samples/output/sample_mixed_types_field_report_strict.pdf)
 
+![Field Rankings tab — every column ranked by composite score with a green-to-red color scale](samples/output/screenshots/excel_field_rankings.png)
+
+*Field Rankings tab from a 500-row sample. Every column in the input is ranked by composite score with a green-to-red color scale; trustworthy fields like `revenue` and `customer_id` rise to the top, while sparse or constant columns like `mostly_null` and `constant_col` fall to the bottom.*
+
+![Correlation Matrix tab with diverging red/white/green color scale across numeric columns](samples/output/screenshots/correlation_matrix.png)
+
+*Correlation Matrix tab from the same sample. Every numeric column is paired against every other numeric column, with green showing positive correlation, red showing negative, and white showing none. Generated automatically as part of every report.*
+
+![Side-by-side: standard mode vs --strict-types scoring the same column](samples/output/screenshots/strict_mode_comparison.png)
+
+*The same column (`revenue_mixed`) scored two ways. On the left, standard mode reads it as numeric and gives it 0.9775 — the 15 string cells were silently converted to NaN. On the right, `--strict-types` reads each cell's actual type, scores the column at 0.817, and shows the breakdown in the new `type_mix` column.*
+
 The two mixed-types reports are the headline — same input, scored both ways. Open them side-by-side to see exactly what `--strict-types` catches.
 
 ---
