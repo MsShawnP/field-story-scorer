@@ -12,12 +12,10 @@ the Excel loader.
 from __future__ import annotations
 
 import csv
-from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 
-from datascope.analyzers.format_check import DATE_LIKE_RE
 from datascope.loaders.base import dedupe_headers
 from datascope.models import LoaderResult
 
@@ -30,17 +28,6 @@ _BOOL_FALSE = frozenset({"false", "no"})
 # it must stay a string rather than becoming ``inf``/``NaN``.
 _NON_FINITE_STRS = frozenset({"inf", "infinity", "nan"})
 
-# Date/time formats tried in order (most specific first).
-_DATETIME_FMTS = (
-    "%Y-%m-%dT%H:%M:%S",      # ISO 8601
-    "%Y-%m-%d %H:%M:%S",      # space-separated
-    "%Y-%m-%d",                # date only
-    "%m/%d/%Y %H:%M:%S",
-    "%m/%d/%Y",
-    "%d/%m/%Y",
-    "%Y/%m/%d",
-)
-
 
 def _infer_cell(raw: str) -> object:
     """Infer a single cell's Python value from its raw CSV string.
@@ -50,8 +37,14 @@ def _infer_cell(raw: str) -> object:
     2. Integer
     3. Float
     4. Boolean (true/false/yes/no, case-insensitive)
-    5. Datetime (common formats)
-    6. String fallback
+    5. String fallback
+
+    Date-like cells are DELIBERATELY left as strings. A CSV has no type
+    metadata, so a date is text; coercing it to ``datetime`` here would erase the
+    very format evidence the mixed-date analyzer needs, silently hiding a
+    mixed-format column ("2026-01-01" vs "01/02/2026") — exactly the silent
+    coercion datascope exists to surface. (Excel dates arrive already typed from
+    openpyxl, so the Excel loader keeps its datetime cells.)
     """
     stripped = raw.strip()
     if not stripped:
@@ -92,15 +85,10 @@ def _infer_cell(raw: str) -> object:
     if lower in _BOOL_FALSE:
         return False
 
-    # --- datetime -----------------------------------------------------
-    if DATE_LIKE_RE.match(stripped):
-        for fmt in _DATETIME_FMTS:
-            try:
-                return datetime.strptime(stripped, fmt)
-            except ValueError:
-                continue
-
     # --- string fallback ----------------------------------------------
+    # Date-like strings intentionally fall through to here (see docstring):
+    # kept as text so analyze_mixed_dates can see the raw format and flag a
+    # mixed-format column instead of it being silently coerced away.
     return stripped
 
 

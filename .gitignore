@@ -50,3 +50,11 @@ secrets.*
 
 # UI-review tool output (regenerated each run)
 screenshots/
+
+# --- lailara engagement scaffold ---
+# Client engagement data is runtime-only: never commit it, never deploy it.
+client-data/
+client-output/
+/engagement.yml
+/engagement.yaml
+# (engagement.demo.yml and engagement.example.yml stay committable)

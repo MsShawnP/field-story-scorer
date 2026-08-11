@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import datetime
 import html
+import os
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -107,7 +108,16 @@ def write_html(
     filename = source_metadata.get("filename", "unknown")
     rows = source_metadata.get("row_count", "?")
     cols = source_metadata.get("column_count", "?")
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    # Honor SOURCE_DATE_EPOCH (reproducible-builds standard) so regenerated
+    # sample reports are byte-identical; a bare datetime.now() here makes the
+    # generator tag change every run and defeats any byte-lock on the output.
+    _sde = os.environ.get("SOURCE_DATE_EPOCH")
+    _dt = (
+        datetime.datetime.fromtimestamp(int(_sde), tz=datetime.timezone.utc)
+        if _sde
+        else datetime.datetime.now()
+    )
+    now = _dt.strftime("%Y-%m-%d %H:%M")
 
     counts = severity_counts(findings)
     total = sum(counts.values())

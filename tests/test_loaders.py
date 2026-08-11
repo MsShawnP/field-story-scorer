@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import textwrap
-from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -178,15 +177,25 @@ class TestLoadCsv:
         vals = list(result.dataframe["flag"])
         assert vals == [True, False, True, False]
 
-    def test_datetime_inference_iso(self, tmp_path):
+    def test_dates_stay_strings_so_mixed_formats_can_surface(self, tmp_path):
+        # P1 (RE-AUDIT): the CSV loader must NOT coerce date-like strings to
+        # datetime — that erased the format evidence and hid mixed-format columns
+        # (the silent coercion datascope exists to catch). Date-like CSV cells
+        # stay as strings; the mixed-date analyzer then sees the raw formats.
+        from datascope.analyzers.format_check import analyze_mixed_dates
+
         csv_path = _write_csv(tmp_path, """\
             ts
             2024-01-15
-            2024-06-30T12:00:00
+            01/15/2024
+            2024/06/30
         """)
         result = load_csv(csv_path)
-        assert all(t is datetime for t in result.cell_types["ts"])
-        assert result.dataframe.at[0, "ts"] == datetime(2024, 1, 15)
+        assert all(t is str for t in result.cell_types["ts"])
+        assert result.dataframe.at[0, "ts"] == "2024-01-15"   # not coerced
+        findings = analyze_mixed_dates(result)
+        assert len(findings) == 1                              # mixed formats now fire on CSV
+        assert set(findings[0].evidence["formats_found"]) == {"%Y-%m-%d", "%m/%d/%Y", "%Y/%m/%d"}
 
     def test_bom_handled_transparently(self, tmp_path):
         """UTF-8 BOM should not corrupt the first header."""

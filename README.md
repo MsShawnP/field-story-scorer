@@ -19,15 +19,13 @@ datascope finds these problems, explains what's wrong in plain English, and tell
 |---|---|---|
 | **Mixed types** | 485 numbers + 15 strings in a "numeric" column | Critical |
 | **Sentinel values** | "N/A", "TBD", "pending" hiding in numeric data | Critical |
-| **Missing values** | 50%+ of a column is blank — aggregations silently exclude those rows (below 50% is flagged Info) | Warning |
+| **Missing values** | Flagged at ≥10% blank; Warning at ≥50%, Info below — aggregations silently exclude those rows | Warning / Info |
 | **Leading-zero inconsistency** | "00123" alongside "456" — keys that won't match | Warning |
 | **Mixed date formats** | "01/15/2026" and "2026-01-15" in the same column | Warning |
 | **Suspected duplicate IDs** | 98% unique in an ID column — the other 2% will fan out joins | Warning |
 | **Near-constant columns** | 1 distinct value across 10,000 rows | Info |
 
 Each finding is expressed as **assumption vs. reality**: what the data *appears* to be vs. what it *actually contains*. Every finding includes a downstream impact explanation, a fix recommendation, and a prevention rule.
-
-> **Note on CSV input:** date strings written in formats the CSV loader recognizes (e.g. `2026-01-15` and `01/15/2026`) are parsed to real dates at load time, so a CSV column mixing those two formats is normalized before analysis and does **not** raise a *Mixed date formats* finding. To surface mixed date formats, supply the column as text — for example in an `.xlsx` file with text-formatted cells, where the values stay strings and the check fires as expected.
 
 ---
 

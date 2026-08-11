@@ -1,0 +1,24 @@
+#!/bin/sh
+# Lailara engagement deploy guard (git pre-push hook).
+#
+# Refuses to push while an ACTIVE (non-demo) client engagement.yml is present in
+# the working tree. Every tool repo auto-deploys on push, so blocking the push
+# blocks the deploy — client mode is runtime-only and must never ship.
+#
+# No-op when no engagement.yml exists (demo builds and clean CI checkouts push
+# normally), so demo behavior is unchanged.
+#
+# Activated per repo with:  git config core.hooksPath scripts/git-hooks
+set -e
+for f in engagement.yml engagement.yaml; do
+  if [ -f "$f" ]; then
+    if grep -Eq '^[[:space:]]*demo:[[:space:]]*true[[:space:]]*$' "$f"; then
+      continue   # demo config -> safe
+    fi
+    echo "ENGAGEMENT GUARD: active client engagement config present ($f)." >&2
+    echo "Client mode is runtime-only and must never deploy. Deactivate it" >&2
+    echo "(set 'demo: true', or remove/rename to engagement.demo.yml) before pushing." >&2
+    exit 2
+  fi
+done
+exit 0
