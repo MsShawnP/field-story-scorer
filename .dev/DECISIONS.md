@@ -41,3 +41,9 @@ Modern setuptools (isolated build env) rejects the `License :: OSI Approved :: M
 - **Why:** GX owns rules, Pandera owns schemas, Soda owns databases, ydata owns stats. datascope's moat is cell-level detection + professional narrative reports for non-technical readers. Competing on their turf dilutes the positioning.
 - **Scope:** All future feature decisions for datascope
 - **Do not:** Add custom validation rules, database connectors, statistical profiling, Polars backend, drift detection, or web UI/SaaS
+
+## 2026-07-31: Committed samples must match current code output; HTML enforced by a test
+
+- **Why:** `samples/output/` files are portfolio artifacts shown to prospects. They silently went stale twice (frozen at v2.2.0, then again at v2.3.3) because nothing regenerated and compared them against current code.
+- **Scope:** All committed sample outputs. `tests/test_samples_fidelity.py` regenerates the two HTML samples via `cli.main()` and asserts a byte match (timestamp-normalized). Any intentional change to report rendering, `_palette` narrative/colors, or the package version must be accompanied by regenerated samples in the same change.
+- **Do not:** Ship a report/palette/version change without regenerating `samples/output/`. Do not attempt to byte-diff the PDF or annotated-Excel samples in a test — they embed nondeterministic metadata; regenerate those by hand.

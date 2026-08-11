@@ -2,13 +2,38 @@
 
 All notable changes to datascope are documented here.
 
+## [Unreleased]
+
+### Fixed
+- HTML report generator timestamp now honors `SOURCE_DATE_EPOCH` (the reproducible-builds standard), so regenerated sample reports are byte-identical run-to-run. A bare `datetime.now()` in the report footer otherwise changed every run and defeated any byte-lock on the output.
+
+### Changed
+- Regenerated `samples/output/` from current source with `SOURCE_DATE_EPOCH` pinned, so the shipped showcase artifacts reflect the 2.4.0 tool and are reproducible. See `scripts/regenerate_samples.sh`. (The annotated `.xlsx` content is reproducible but its openpyxl envelope carries wall-clock member mtimes, so it is not raw-byte identical — the `.html`/`.pdf` are.)
+
 ## [2.4.0] — 2026-08-05
 
 ### Fixed
 - **Mixed date formats are now detected in CSV files.** The CSV loader coerced date-like strings to `datetime` on load, erasing the raw format before the mixed-date analyzer could see it — so a column mixing `2026-01-01` and `01/02/2026` was silently reconciled and never flagged, the exact silent coercion datascope exists to surface. Date-like CSV cells are now kept as strings (a CSV has no type metadata; a date is text), so `analyze_mixed_dates` sees the raw formats and reports the inconsistency. Excel date cells, which arrive already typed from openpyxl, are unaffected.
 
 ### Docs
-- README missing-value threshold now reads 10% to match the code default (`_DEFAULT_THRESHOLD_PCT`), correcting a stale "40%".
+- README missing-value row now names both thresholds it depends on — flagged at ≥10% blank (`_DEFAULT_THRESHOLD_PCT`) and Warning at ≥50% / Info below (`findings/severity.py`). Correction: an earlier draft of this entry read "threshold now reads 10%", which put the flag floor into a row labeled *Warning* — the two are different decisions and the row now states both.
+- Removed the CSV mixed-date caveat from the README. The loader fix above now surfaces mixed dates in CSVs, so the caveat added in 2.3.4 ("supply as `.xlsx`") no longer holds.
+
+## [2.3.4] — 2026-07-31
+
+### Fixed
+- **`__version__` now matches the release.** `datascope/__init__.py` reported `2.3.2` while the 2.3.3 wheel's metadata said `2.3.3`, so `datascope --version` and every HTML/PDF report's generator tag misreported the version for pip users. Both `__init__.py` and `pyproject.toml` are now pinned to the same version.
+
+### Documentation
+- **README "Example Output"** replaced with a captured transcript of a real run: the sample is 200 rows × 4 columns and produces 2 Critical findings (both on `revenue_mixed`), not the previously shown 4 findings across 6 columns with a non-existent `status` column.
+- **Severity table** now states missing-value findings are Warning at ≥50% blank (below 50% is Info), matching `findings/severity.py`.
+- **CSV date caveat** added: date strings in loader-recognized formats are parsed at load, so a CSV column mixing `2026-01-15` and `01/15/2026` is normalized before analysis and does not raise a Mixed-date finding; supply the column as text (e.g. an `.xlsx`) to surface it.
+
+## [2.3.3] — 2026-07-30
+
+### Changed
+- **Report health assessment** now names the consequence: warning-level findings state that they typically skew joins and aggregations quietly, instead of a generic "address before production" line.
+- **Print styles tokenized** to the Lailara palette: report body ink is London-5 (`#0d0d0d`) and summary-card borders are London-85 (`#d9d9d9`) in print, replacing off-palette `#000`/`#ccc`.
 
 ## [2.3.2] — 2026-07-27
 

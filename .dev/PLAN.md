@@ -225,6 +225,26 @@ Goal: Deepen the technical moat and expand the addressable audience.
 
 ## Improvement History
 
+### 2026-07-31 — Verification pass (post-Claude-Code-issues) + code review
+- **Trigger:** User-initiated — verify the recent London-95 visual pass landed correctly.
+- **What was reviewed:** 3 reviewer agents (correctness, project-standards, maintainability)
+  against the unreleased visual pass; sample regeneration fidelity.
+- **What was fixed:**
+  1. `html.py` drift trap — body background + zebra even-row were literals equal to
+     the just-introduced tokens; pointed both at `CANVAS_HEX` / `LONDON_95_HEX`.
+  2. Tightened `test_lailara_design_tokens` — pins each surface selector to its token
+     and checks the zebra pair is present and distinct (old test asserted a value that
+     predated the change, so it passed even if surfaces reverted to white).
+  3. Added `tests/test_samples_fidelity.py` — regenerates HTML samples via `cli.main()`
+     and diffs committed copies; caught v2.3.3's stale samples on first run.
+  4. Regenerated all 5 sample artifacts (2 HTML, 2 PDF, 1 annotated Excel) that the
+     concurrent v2.3.3 release had left stale.
+- **Deferred/tracked:** remaining `html.py` text/border literals (`LONDON_5`/`35`/`20`/`85`)
+  left hardcoded (pre-existing, flagged by standards agent); PDF/Excel samples have no
+  automated staleness guard.
+- **Test count:** 364 → 366.
+- **Next review:** 2026-08-24 (unchanged — active project).
+
 ### 2026-07-27 — Improvement pass (+ code review + UI review)
 - **Trigger:** User-initiated (`/improve` + code review + UI review)
 - **What was reviewed:** Full source audit; parallel correctness + maintainability

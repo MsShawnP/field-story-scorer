@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,7 @@ from datascope.findings.composer import compose_finding
 from datascope.findings.pipeline import process_findings
 from datascope.findings.severity import classify_severity
 from datascope.models import Finding, FindingType
+from datascope.reports._palette import CANVAS_HEX, LONDON_95_HEX
 from datascope.reports.html import _e, _health_assessment, write_html
 
 # ---------------------------------------------------------------------------
@@ -208,7 +210,30 @@ class TestHappyPathMixedFindings:
 
     def test_lailara_design_tokens(self, html_path: Path):
         content = html_path.read_text(encoding="utf-8")
-        assert "#f5f3ee" in content
+
+        # Card/panel surfaces render the London-95 token -- pin selector -> token
+        # so a revert to bare #ffffff (or a rename that misses a surface) fails.
+        for selector in (".summary-card", ".health", ".finding-card"):
+            assert re.search(
+                rf"{re.escape(selector)}\s*\{{[^}}]*background:\s*{re.escape(LONDON_95_HEX)}",
+                content,
+            ), f"{selector} does not use the London-95 surface token {LONDON_95_HEX}"
+
+        # Page background and table base render the canvas token.
+        for selector in ("body", "table"):
+            assert re.search(
+                rf"(?:^|\s){re.escape(selector)}\s*\{{[^}}]*background:\s*{re.escape(CANVAS_HEX)}",
+                content,
+            ), f"{selector} does not use the canvas token {CANVAS_HEX}"
+
+        # Zebra striping: even rows take London-95 over the canvas table base.
+        # The two tokens must differ or the stripe collapses to a flat fill.
+        assert CANVAS_HEX != LONDON_95_HEX
+        assert re.search(
+            rf"tr:nth-child\(even\)\s*\{{[^}}]*background:\s*{re.escape(LONDON_95_HEX)}",
+            content,
+        ), "zebra even-row does not use the London-95 token"
+
         assert "#1f2e7a" in content
         assert "@font-face" in content, (
             "No @font-face block: the woff2 files did not ship with the package. "

@@ -1,5 +1,17 @@
 # Handoff
 
+## 2026-07-31 18:15
+
+**Started from:** v2.3.2 on PyPI, clean tree, an unreleased London-95 visual pass on `main`. Asked to verify recent work landed correctly after Claude Code had issues.
+
+**Did:** 3-agent review (correctness / project-standards / maintainability) + a regeneration check against the unreleased visual pass — confirmed it was correct (the 83-line sample diff was legit stale-sample cleanup, not corruption). Fixed an `html.py` drift trap (body background → `CANVAS_HEX`, zebra even-row → `LONDON_95_HEX`; both were literals equal to just-introduced tokens). Tightened `test_lailara_design_tokens` (pins selector→token, checks zebra distinctness). Added `tests/test_samples_fidelity.py` — regenerates HTML samples via `cli.main()` and diffs committed copies (timestamp-normalized). On push, found a **concurrent session had released v2.3.3**; rebased cleanly onto it (edits were disjoint). The new test immediately caught that v2.3.3 shipped **stale samples** — regenerated all 5 artifacts (2 HTML, 2 PDF, 1 annotated Excel) to match current code.
+
+**State:** `main` in sync with origin (0/0), tree clean, **366 tests pass, ruff clean**. All samples current. 4 feature commits pushed + this wrap commit.
+
+**Next:** Greenfield. Tracked items: (1) optionally tokenize the remaining `html.py` text/border literals (`#0d0d0d`/`#595959`/`#333333`/`#d9d9d9` = `LONDON_5`/`35`/`20`/`85`) as a deliberate typography pass — flagged by the standards agent, left as pre-existing. (2) PDF/Excel samples have no automated staleness guard — the fidelity test covers HTML only. **`git fetch`/`pull` before next work — a concurrent session is active on this repo.**
+
+---
+
 ## 2026-07-27 21:15
 
 **Started from:** v2.3.1 on PyPI, clean tree. Due for a second `/improve`. Request: improve + code review + UI review.

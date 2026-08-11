@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import datetime
 import html
+import os
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -107,7 +108,16 @@ def write_html(
     filename = source_metadata.get("filename", "unknown")
     rows = source_metadata.get("row_count", "?")
     cols = source_metadata.get("column_count", "?")
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    # Honor SOURCE_DATE_EPOCH (reproducible-builds standard) so regenerated
+    # sample reports are byte-identical; a bare datetime.now() here makes the
+    # generator tag change every run and defeats any byte-lock on the output.
+    _sde = os.environ.get("SOURCE_DATE_EPOCH")
+    _dt = (
+        datetime.datetime.fromtimestamp(int(_sde), tz=datetime.timezone.utc)
+        if _sde
+        else datetime.datetime.now()
+    )
+    now = _dt.strftime("%Y-%m-%d %H:%M")
 
     counts = severity_counts(findings)
     total = sum(counts.values())
@@ -170,7 +180,7 @@ def write_html(
   {_font_face_css()}
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
   body {{ font-family: 'Source Sans 3', 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-         color: #333333; background: #f5f3ee; line-height: 1.6; }}
+         color: #333333; background: {CANVAS_HEX}; line-height: 1.6; }}
   .container {{ max-width: 900px; margin: 0 auto; padding: 48px 24px; }}
   .title-section {{ text-align: center; padding: 40px 0 20px; }}
   .title-section h1 {{ font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
@@ -207,7 +217,7 @@ def write_html(
   th {{ background: {CHICAGO_20_HEX}; color: white; padding: 10px 14px; text-align: left;
         font-size: 13px; font-weight: 600; }}
   td {{ padding: 8px 14px; font-size: 13px; border-bottom: 1px solid #e0e0e0; color: #333333; }}
-  tr:nth-child(even) {{ background: #f2f2f2; }}
+  tr:nth-child(even) {{ background: {LONDON_95_HEX}; }}
   .footer {{ text-align: center; padding: 24px 0; color: #595959; font-size: 11px;
              font-style: italic; }}
   .table-wrap {{ overflow-x: auto; }}

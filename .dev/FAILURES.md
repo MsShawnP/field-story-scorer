@@ -13,3 +13,17 @@
 - **Why it matters:** A red CI that doesn't block releases trains you to ignore CI. setuptools here is a build-env tool, not a datascope runtime dep, so the package was fine — but the next red could be real.
 - **Fix / avoidance:** Fixed by upgrading setuptools in the CI install step. Check `gh run list --workflow=ci.yml` after pushes; consider having the publish workflow depend on CI passing.
 - **Tags:** ci, release, dependencies
+
+## 2026-07-31: v2.3.3 released with stale sample artifacts
+
+- **What happened:** A session cut v2.3.3 (changed `html.py` print-block colors `#000`→`#0d0d0d`/`#ccc`→`#d9d9d9` and the `_palette.health_assessment_text` wording) but did not regenerate `samples/output/`. The committed HTML/PDF/Excel portfolio artifacts still carried pre-v2.3.3 output. Same failure mode as the earlier v2.2.0 freeze — samples silently drift because nothing regenerates and compares them.
+- **Why it matters:** Samples are shown to prospects; a release shipping stale samples misrepresents the current tool. This is the second occurrence.
+- **Fix / avoidance:** Added `tests/test_samples_fidelity.py` — regenerates HTML samples via `cli.main()` and diffs committed copies (fails on drift). PDF/Excel are not covered (binary/nondeterministic) — regenerate by hand on any report/palette/version change. Consider a release-checklist step: regenerate all samples before tagging.
+- **Tags:** release, samples, process
+
+## 2026-07-31: built on a stale base — no fetch at session start
+
+- **What happened:** Started editing local `main` without `git fetch`. A concurrent session had already pushed v2.3.3 to origin. First `git push` was rejected; had to fetch + rebase mid-session.
+- **Why it matters:** Building on a stale base risks conflicts and duplicated work — my palette-token cleanup could have collided with the concurrent "palette tokens" sweep (it happened to be disjoint this time).
+- **Fix / avoidance:** `git fetch` at session start, especially on repos where multiple agent sessions run concurrently. Rebase unpushed local commits onto the updated remote — never force.
+- **Tags:** git, workflow, process
