@@ -1,0 +1,28 @@
+# HANDOFF
+
+Session-to-session continuity. Newest entry on top.
+
+## 2026-09-02 09:40
+
+**Started from:** datascope CI red since before the org migration — recorded as a
+known-red baseline in fleet-ops MIGRATION.md. Task: diagnose why, fix correctly,
+get CI green, update the baseline note.
+
+**Did:** Found local `main` was 7 commits behind `origin/main`; the real red state
+was `origin/main @ 9b0b2cc` (font re-vendor). Fast-forwarded, reproduced the
+`test_samples_fidelity` failure. Root cause: `9b0b2cc` swapped the embedded Source
+Sans woff2 (mislabeled ExtraLight → correct weight-400) but never regenerated the
+committed samples, which base64-embed that font. Proved sample-stale, not a code
+regression — normalized diff confined to the single `@font-face src:url(data:...)`
+line. Regenerated all font-embedding formats (HTML/PDF/xlsx) via
+`scripts/regenerate_samples.sh`. Committed `5b20441`, pushed, CI green on
+3.10/3.11/3.12. Updated fleet-ops MIGRATION.md (`164ce50`) to clear the datascope
+baseline entry, cross-referenced.
+
+**State:** `main` green on all three Python versions, clean tree, pushed. No open
+datascope work. fleet-ops baseline now down to 1 pre-existing red (`lailara-intake`).
+
+**Next:** datascope is clean — nothing pending here. If clearing the last fleet
+baseline red: `lailara-intake` deploy fails on npm ERESOLVE (wrangler@3.90.0 wants
+`@cloudflare/workers-types@^4`, project pins `^5`) — align versions, redeploy. That
+work lives in the lailara-intake repo, not here.
